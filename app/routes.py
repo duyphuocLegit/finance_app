@@ -72,7 +72,7 @@ def dashboard():
     income_data = defaultdict(float)
     expense_data = defaultdict(float)
     for t in transactions:
-        date_str = t.date.strftime('%Y-%m-%d')
+        date_str = t.date.strftime('%d-%m-%Y')
         if t.type == 'Income':
             income_data[date_str] += t.amount
         elif t.type == 'Expense':
@@ -116,7 +116,7 @@ def edit_transaction(transaction_id):
     transaction.title = data['title']
     transaction.amount = data['amount']
     transaction.type = data['type']
-    transaction.date = datetime.strptime(data['date'], '%Y-%m-%d')
+    transaction.date = datetime.strptime(data['date'], '%d-%m-%Y')
     transaction.category = data['category']
     db.session.commit()
 

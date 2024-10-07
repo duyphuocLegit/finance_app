@@ -86,8 +86,8 @@
                 </select>
             </td>
             <td>
-                <span class="transaction-date">{{ transaction.date.strftime('%Y-%m-%d') }}</span>
-                <input type="date" class="form-control transaction-date-input" value="{{ transaction.date.strftime('%Y-%m-%d') }}" style="display:none;">
+                <span class="transaction-date">{{ transaction.date.strftime('%d-%m-%Y') }}</span>
+                <input type="date" class="form-control transaction-date-input" value="{{ transaction.date.strftime('%d-%m-%Y') }}" style="display:none;">
             </td>
             <td>
                 <span class="transaction-category">{{ transaction.category }}</span>
