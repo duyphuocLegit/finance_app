@@ -29,12 +29,12 @@ class TransactionForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
     amount = FloatField('Amount', validators=[DataRequired()])
     type = SelectField('Type', choices=[('Income', 'Income'), ('Expense', 'Expense')], validators=[DataRequired()])
-    date = DateField('Date', format='%d-%m-%Y', validators=[DataRequired()])
+    date = DateField('Date', format='%Y-%m-%d', validators=[DataRequired()])
     category = StringField('Category', validators=[DataRequired()])
     submit = SubmitField('Add Transaction')
 
 class FilterForm(FlaskForm):
-    start_date = DateField('Start Date', format='%d-%m-%Y', validators=[Optional()])
-    end_date = DateField('End Date', format='%d-%m-%Y', validators=[Optional()])
+    start_date = DateField('Start Date', format='%Y-%m-%d', validators=[Optional()])
+    end_date = DateField('End Date', format='%Y-%m-%d', validators=[Optional()])
     category = StringField('Category', validators=[Optional()])
     submit = SubmitField('Filter')

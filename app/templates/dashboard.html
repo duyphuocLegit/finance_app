@@ -1,6 +1,28 @@
 {% extends "base.html" %}
 {% block content %}
+<style>
+    #chart-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+    }
+    
+    #chart-container {
+        width: 400px;
+        height: 400px;
+    }
+    
+    #close-modal {
+        margin-top: 10px;
+    }
+    </style>
 <h2 class="mb-4">Dashboard</h2>
+
 
 <div class="row mb-4">
     <div class="col-md-4">
@@ -27,6 +49,14 @@
             </div>
         </div>
     </div>
+</div>
+
+<!-- Modal for displaying the chart -->
+<div id="chart-modal" style="display:none;">
+    <div id="chart-container">
+        <canvas id="category-chart"></canvas>
+    </div>
+    <button id="close-modal">Close</button>
 </div>
 
 <!-- Filter Icon -->
@@ -59,15 +89,15 @@
 <table class="table table-striped">
     <thead>
         <tr>
-            <th>Title</th>
-            <th>Amount</th>
-            <th>Type</th>
-            <th>Date</th>
-            <th>Category</th>
+            <th><a href="#" id="sort-title" class="sort-link">Title</a></th>
+            <th><a href="#" id="sort-amount" class="sort-link">Amount</a></th>
+            <th><a href="#" id="sort-type" class="sort-link">Type</a></th>
+            <th><a href="#" id="sort-date" class="sort-link">Date</a></th>
+            <th><a href="#" id="sort-category" class="sort-link">Category</a></th>
             <th>Actions</th>
         </tr>
     </thead>
-    <tbody>
+    <tbody id="transactions-body">
         {% for transaction in transactions %}
         <tr id="transaction-{{ transaction.id }}">
             <td>
@@ -86,20 +116,20 @@
                 </select>
             </td>
             <td>
-                <span class="transaction-date">{{ transaction.date.strftime('%d-%m-%Y') }}</span>
-                <input type="date" class="form-control transaction-date-input" value="{{ transaction.date.strftime('%d-%m-%Y') }}" style="display:none;">
+                <span class="transaction-date">{{ transaction.date.strftime('%Y-%m-%d') }}</span>
+                <input type="date" class="form-control transaction-date-input" value="{{ transaction.date.strftime('%Y-%m-%d') }}" style="display:none;">
             </td>
             <td>
                 <span class="transaction-category">{{ transaction.category }}</span>
                 <input type="text" class="form-control transaction-category-input" value="{{ transaction.category }}" style="display:none;">
             </td>
             <td>
-                <button class="btn btn-warning btn-sm edit-btn" onclick="editTransaction('{{ transaction.id }}')"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-sm edit-btn btn-outline-primary" onclick="editTransaction('{{ transaction.id }}')"><i class="fas fa-edit"></i></button>
                 <button class="btn btn-success btn-sm apply-btn" onclick="applyTransaction('{{ transaction.id }}')" style="display:none;"><i class="fas fa-check"></i></button>
                 <button class="btn btn-secondary btn-sm cancel-btn" onclick="cancelTransaction('{{ transaction.id }}')" style="display:none;"><i class="fas fa-times"></i></button>
                 <form action="{{ url_for('delete_transaction', transaction_id=transaction.id) }}" method="POST" style="display:inline;">
                     {{ form.hidden_tag() }}
-                    <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
+                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
                 </form>
             </td>
         </tr>
@@ -107,7 +137,7 @@
     </tbody>
 </table>
 {% else %}
-<p>No transactions found for the selected criteria.</p>
+<p class="text-gray-500">No transactions found.</p>
 {% endif %}
 
 <div class="pagination-wrapper">
@@ -120,6 +150,9 @@
 <canvas id="incomeExpenseChart"></canvas>
 
 <script>
+
+    
+
 function editTransaction(id) {
     document.querySelector(`#transaction-${id} .transaction-title`).style.display = 'none';
     document.querySelector(`#transaction-${id} .transaction-amount`).style.display = 'none';
@@ -199,6 +232,73 @@ document.getElementById('filter-icon').addEventListener('click', function() {
     }
 });
 
+// Sorting functionality
+document.getElementById('sort-title').addEventListener('click', function(event) {
+    event.preventDefault();
+    sortTable('transactions-body', 0,'string');
+});
+
+document.getElementById('sort-amount').addEventListener('click', function(event) {
+    event.preventDefault();
+    sortTable('transactions-body', 1,'number');
+});
+
+document.getElementById('sort-type').addEventListener('click', function(event) {
+    event.preventDefault();
+    sortTable('transactions-body', 2,'string');
+});
+
+document.getElementById('sort-date').addEventListener('click', function(event) {
+    event.preventDefault();
+    sortTable('transactions-body', 3,'date');
+});
+
+document.getElementById('sort-category').addEventListener('click', function(event) {
+    event.preventDefault();
+    sortTable('transactions-body', 4,'string');
+});
+
+function sortTable(tbodyId, colIndex, type) {
+    const tbody = document.getElementById(tbodyId);
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const sortedRows = rows.sort((a, b) => {
+        let aText = a.children[colIndex].innerText.toLowerCase();
+        let bText = b.children[colIndex].innerText.toLowerCase();
+
+        if (type === 'number') {
+            aText = parseFloat(aText.replace(/[^0-9.-]+/g, ""));
+            bText = parseFloat(bText.replace(/[^0-9.-]+/g, ""));
+        } else if (type === 'date') {
+            aText = new Date(aText);
+            bText = new Date(bText);
+        }
+
+        if (aText < bText) return -1;
+        if (aText > bText) return 1;
+        return 0;
+    });
+
+    // Toggle sort direction
+    if (this.sortDirection === 'asc') {
+        sortedRows.reverse();
+        this.sortDirection = 'desc';
+    } else {
+        this.sortDirection = 'asc';
+    }
+
+    // Remove existing rows
+    while (tbody.firstChild) {
+        tbody.removeChild(tbody.firstChild);
+    }
+
+    // Append sorted rows
+    sortedRows.forEach(row => tbody.appendChild(row));
+}
+
+// Default sort by date
+sortTable('transactions-body', 3,'date');
+
+//Chart
 const ctx = document.getElementById('incomeExpenseChart').getContext('2d');
 const incomeExpenseChart = new Chart(ctx, {
     type: 'bar',

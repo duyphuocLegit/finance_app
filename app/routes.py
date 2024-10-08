@@ -1,12 +1,10 @@
-from flask import render_template, redirect, url_for, flash
 from app import app, db
 from app.forms import RegistrationForm, LoginForm, TransactionForm,FilterForm
 from app.models import User, Transaction
 from flask_login import login_user, logout_user, login_required, current_user
-from flask import render_template, redirect, url_for, flash, request
+from flask import render_template, redirect, url_for, flash, request,jsonify
 from flask_paginate import Pagination, get_page_parameter
 from datetime import datetime
-from flask import jsonify, request
 from collections import defaultdict
 
 
