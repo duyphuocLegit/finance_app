@@ -7,7 +7,6 @@ from flask_paginate import Pagination, get_page_parameter
 from datetime import datetime
 from collections import defaultdict
 
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -70,7 +69,7 @@ def dashboard():
     income_data = defaultdict(float)
     expense_data = defaultdict(float)
     for t in transactions:
-        date_str = t.date.strftime('%d-%m-%Y')
+        date_str = t.date.strftime('%Y-%m-%d')
         if t.type == 'Income':
             income_data[date_str] += t.amount
         elif t.type == 'Expense':
@@ -114,7 +113,7 @@ def edit_transaction(transaction_id):
     transaction.title = data['title']
     transaction.amount = data['amount']
     transaction.type = data['type']
-    transaction.date = datetime.strptime(data['date'], '%d-%m-%Y')
+    transaction.date = datetime.strptime(data['date'], '%Y-%m-%d')
     transaction.category = data['category']
     db.session.commit()
 

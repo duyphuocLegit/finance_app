@@ -1,29 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<style>
-    #chart-modal {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background-color: white;
-        padding: 20px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-        z-index: 1000;
-    }
-    
-    #chart-container {
-        width: 400px;
-        height: 400px;
-    }
-    
-    #close-modal {
-        margin-top: 10px;
-    }
-    </style>
 <h2 class="mb-4">Dashboard</h2>
-
-
 <div class="row mb-4">
     <div class="col-md-4">
         <div class="card text-white bg-success mb-3">
@@ -49,14 +26,6 @@
             </div>
         </div>
     </div>
-</div>
-
-<!-- Modal for displaying the chart -->
-<div id="chart-modal" style="display:none;">
-    <div id="chart-container">
-        <canvas id="category-chart"></canvas>
-    </div>
-    <button id="close-modal">Close</button>
 </div>
 
 <!-- Filter Icon -->
@@ -150,9 +119,6 @@
 <canvas id="incomeExpenseChart"></canvas>
 
 <script>
-
-    
-
 function editTransaction(id) {
     document.querySelector(`#transaction-${id} .transaction-title`).style.display = 'none';
     document.querySelector(`#transaction-${id} .transaction-amount`).style.display = 'none';
