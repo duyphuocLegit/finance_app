@@ -1,51 +1,158 @@
 {% extends "base.html" %}
 {% block content %}
+<style>
+    /* General Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* Nav Tabs */
+.nav-tabs .nav-link {
+    color: #495057;
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+.nav-tabs .nav-link.active {
+    background-color: #007bff;
+    color: #fff;
+    border-color: #007bff;
+}
+
+/* Card Styles */
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.card-title {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+/* Table Styles */
+.table {
+    margin-top: 20px;
+}
+
+.table th, .table td {
+    font-size: 1rem;
+    vertical-align: middle;
+}
+
+.table th {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.table tbody tr:nth-child(odd) {
+    background-color: #f2f2f2;
+}
+
+.table tbody tr:hover {
+    background-color: #e9ecef;
+}
+
+/* Button Styles */
+.btn {
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.edit-btn, .apply-btn, .cancel-btn {
+    margin-right: 5px;
+}
+
+.edit-btn {
+    background-color: #ffc107;
+    color: #fff;
+}
+
+.apply-btn {
+    background-color: #28a745;
+    color: #fff;
+}
+
+.cancel-btn {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+a{
+    color: #ffffff;
+    text-decoration: none;
+}
+</style>
 <h2 class="mb-4">Dashboard</h2>
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card text-white bg-success mb-3" data-toggle="modal" data-target="#pieChartModal" data-type="income">
-            <div class="card-header">Total Income</div>
-            <div class="card-body">
-                <h5 class="card-title">{{ total_income }}</h5>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-white bg-danger mb-3" data-toggle="modal" data-target="#pieChartModal" data-type="expense">
-            <div class="card-header">Total Expenses</div>
-            <div class="card-body">
-                <h5 class="card-title">{{ total_expenses }}</h5>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-white bg-info mb-3">
-            <div class="card-header">Balance</div>
-            <div class="card-body">
-                <h5 class="card-title">{{ balance }}</h5>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Modal -->
-<div class="modal fade" id="pieChartModal" tabindex="-1" role="dialog" aria-labelledby="pieChartModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="pieChartModalLabel">Pie Chart</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+<!-- Nav tabs -->
+<ul class="nav nav-tabs mb-3" id="dashboardTabs" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link active" id="overview-tab" data-toggle="tab" href="#overview" role="tab" aria-controls="overview" aria-selected="true">Overview</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="detail-tab" data-toggle="tab" href="#detail" role="tab" aria-controls="detail" aria-selected="false">Detail</a>
+    </li>
+</ul>
+
+<!-- Tab panes -->
+<div class="tab-content">
+    <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card text-white bg-success mb-3" data-toggle="modal" data-target="#pieChartModal" data-type="income">
+                    <div class="card-header">Total Incomes</div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ total_income }}</h5>
+                    </div>
+                </div>
             </div>
-            <div class="modal-body">
-                <img id="pieChartImage" src="" alt="Pie Chart" class="img-fluid">
+            <div class="col-md-4">
+                <div class="card text-white bg-danger mb-3" data-toggle="modal" data-target="#pieChartModal" data-type="expense">
+                    <div class="card-header">Total Expenses</div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ total_expenses }}</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-info mb-3">
+                    <div class="card-header">Balance</div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ balance }}</h5>
+                    </div>
+                </div>
             </div>
         </div>
+        
+        <!-- Modal -->
+        <div class="modal fade" id="pieChartModal" tabindex="-1" role="dialog" aria-labelledby="pieChartModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="pieChartModalLabel">Pie Chart</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <img id="pieChartImage" src="" alt="Pie Chart" class="img-fluid">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <h3>Income and Expense Chart</h3>
+<canvas id="incomeExpenseChart"></canvas>
     </div>
-</div>
-
-<!-- Filter Icon -->
+    <div class="tab-pane fade" id="detail" role="tabpanel" aria-labelledby="detail-tab">
+        <!-- Filter Icon -->
 <div id="filter-icon" class="mb-3">
     <i class="fas fa-filter" style="cursor: pointer;"></i>
 </div>
@@ -134,10 +241,8 @@
 </div>
 
 <a href="{{ url_for('add_transaction') }}" class="btn btn-primary">Add Transaction</a>
-
-<h3>Income and Expense Chart</h3>
-<canvas id="incomeExpenseChart"></canvas>
-
+    </div>
+</div>
 <script>
     function editTransaction(id) {
         document.querySelector(`#transaction-${id} .transaction-title`).style.display = 'none';
@@ -208,7 +313,7 @@
                 document.querySelector(`#transaction-${id} .transaction-date`).textContent = date;
     
                 cancelTransaction(id);
-                location.reload();
+                location.reload()
             } else {
                 alert('Failed to update transaction.');
             }
