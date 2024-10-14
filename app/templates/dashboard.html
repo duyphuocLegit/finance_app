@@ -3,7 +3,7 @@
 <h2 class="mb-4">Dashboard</h2>
 <div class="row mb-4">
     <div class="col-md-4">
-        <div class="card text-white bg-success mb-3">
+        <div class="card text-white bg-success mb-3" data-toggle="modal" data-target="#pieChartModal" data-type="income">
             <div class="card-header">Total Income</div>
             <div class="card-body">
                 <h5 class="card-title">{{ total_income }}</h5>
@@ -11,7 +11,7 @@
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card text-white bg-danger mb-3">
+        <div class="card text-white bg-danger mb-3" data-toggle="modal" data-target="#pieChartModal" data-type="expense">
             <div class="card-header">Total Expenses</div>
             <div class="card-body">
                 <h5 class="card-title">{{ total_expenses }}</h5>
@@ -23,6 +23,23 @@
             <div class="card-header">Balance</div>
             <div class="card-body">
                 <h5 class="card-title">{{ balance }}</h5>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="pieChartModal" tabindex="-1" role="dialog" aria-labelledby="pieChartModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pieChartModalLabel">Pie Chart</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <img id="pieChartImage" src="" alt="Pie Chart" class="img-fluid">
             </div>
         </div>
     </div>
@@ -165,6 +182,7 @@ function applyTransaction(id) {
             document.querySelector(`#transaction-${id} .transaction-category`).textContent = category;
 
             cancelTransaction(id);
+            location.reload();
         } else {
             alert('Failed to update transaction.');
         }
@@ -199,32 +217,8 @@ document.getElementById('filter-icon').addEventListener('click', function() {
 });
 
 // Sorting functionality
-document.getElementById('sort-title').addEventListener('click', function(event) {
-    event.preventDefault();
-    sortTable('transactions-body', 0,'string');
-});
-
-document.getElementById('sort-amount').addEventListener('click', function(event) {
-    event.preventDefault();
-    sortTable('transactions-body', 1,'number');
-});
-
-document.getElementById('sort-type').addEventListener('click', function(event) {
-    event.preventDefault();
-    sortTable('transactions-body', 2,'string');
-});
-
-document.getElementById('sort-date').addEventListener('click', function(event) {
-    event.preventDefault();
-    sortTable('transactions-body', 3,'date');
-});
-
-document.getElementById('sort-category').addEventListener('click', function(event) {
-    event.preventDefault();
-    sortTable('transactions-body', 4,'string');
-});
-
 function sortTable(tbodyId, colIndex, type) {
+
     const tbody = document.getElementById(tbodyId);
     const rows = Array.from(tbody.querySelectorAll('tr'));
     const sortedRows = rows.sort((a, b) => {
@@ -260,6 +254,31 @@ function sortTable(tbodyId, colIndex, type) {
     // Append sorted rows
     sortedRows.forEach(row => tbody.appendChild(row));
 }
+
+document.getElementById('sort-title').addEventListener('click', function(event) {
+    event.preventDefault();
+    sortTable('transactions-body', 0,'string');
+});
+
+document.getElementById('sort-amount').addEventListener('click', function(event) {
+    event.preventDefault();
+    sortTable('transactions-body', 1,'number');
+});
+
+document.getElementById('sort-type').addEventListener('click', function(event) {
+    event.preventDefault();
+    sortTable('transactions-body', 2,'string');
+});
+
+document.getElementById('sort-date').addEventListener('click', function(event) {
+    event.preventDefault();
+    sortTable('transactions-body', 3,'date');
+});
+
+document.getElementById('sort-category').addEventListener('click', function(event) {
+    event.preventDefault();
+    sortTable('transactions-body', 4,'string');
+});
 
 // Default sort by date
 sortTable('transactions-body', 3,'date');
@@ -300,5 +319,14 @@ const incomeExpenseChart = new Chart(ctx, {
         }
     }
 });
+
+$('#pieChartModal').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget);
+    var type = button.data('type');
+    var modal = $(this);
+    modal.find('.modal-title').text('Pie Chart of ' + type.charAt(0).toUpperCase() + type.slice(1));
+    modal.find('#pieChartImage').attr('src', '/pie_chart/' + type);
+});
+
 </script>
 {% endblock %}

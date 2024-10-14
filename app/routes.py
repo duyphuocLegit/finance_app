@@ -2,10 +2,14 @@ from app import app, db
 from app.forms import RegistrationForm, LoginForm, TransactionForm,FilterForm
 from app.models import User, Transaction
 from flask_login import login_user, logout_user, login_required, current_user
-from flask import render_template, redirect, url_for, flash, request,jsonify
+from flask import render_template, redirect, url_for, flash, request,jsonify,send_file
 from flask_paginate import Pagination, get_page_parameter
-from datetime import datetime
+from datetime import datetime,date
 from collections import defaultdict
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import io
 
 @app.route('/')
 def index():
@@ -117,7 +121,8 @@ def edit_transaction(transaction_id):
     transaction.category = data['category']
     db.session.commit()
 
-    return jsonify({'success': 'Transaction updated successfully'})
+    flash('Transaction updated successfully!','success')
+    return redirect(url_for('dashboard'))
 
 @app.route('/delete_transaction/<int:transaction_id>', methods=['POST'])
 @login_required
@@ -131,3 +136,48 @@ def delete_transaction(transaction_id):
     db.session.commit()
     flash('Transaction deleted successfully!', 'success')
     return redirect(url_for('dashboard'))
+
+@app.route('/pie_chart/<string:type>', methods=['GET'])
+@login_required
+def pie_chart(type):
+    try:
+        # Fetch data from the database
+        datas = Transaction.query.filter_by(type=type).all()
+        
+        if not datas:
+            return jsonify({"error": "No data found for the specified type"}), 404
+        
+        # Process data
+        categories = {}
+        for data in datas:
+            category = data.category
+            if category in categories:
+                categories[category] += data.amount
+            else:
+                categories[category] = data.amount
+        
+        if not categories:
+            return jsonify({"error": "No categories found"}), 404
+        
+        labels = categories.keys()
+        values = categories.values()
+        
+        # Generate pie chart
+        plt.figure()
+        plt.pie(values, labels=labels, autopct='%1.1f%%')
+        plt.axis('equal')
+        plt.legend(labels)
+        plt.title('Pie Chart of ' + type)
+        
+        # Save chart to a BytesIO object
+        img = io.BytesIO()
+        plt.savefig(img, format='png')
+        img.seek(0)
+        plt.close()
+        
+        return send_file(img, mimetype='image/png')
+    
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Error generating pie chart: {e}")
+        return jsonify({"error": "An error occurred while generating the pie chart"}), 500
