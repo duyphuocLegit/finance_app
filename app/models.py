@@ -24,8 +24,8 @@ class Transaction(db.Model):
     title = db.Column(db.String(100), nullable=False)
     amount = db.Column(db.Float, nullable=False)
     type = db.Column(db.String(10), nullable=False)  # 'Income' or 'Expense'
-    date = db.Column(db.DateTime, default=datetime.now)
     category = db.Column(db.String(50), nullable=False)
+    date = db.Column(db.DateTime, default=datetime.now)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self):

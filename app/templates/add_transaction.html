@@ -1,5 +1,31 @@
 {% extends "base.html" %}
 {% block content %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const typeSelect = document.getElementById('type');
+        const categorySelect = document.getElementById('category');
+
+        const categories = {
+            'Income': ['salary', 'investment', 'gift'],
+            'Expense': ['food', 'study', 'work', 'exercise', 'leisure']
+        };
+
+        function updateCategories() {
+            const selectedType = typeSelect.value;
+            const options = categories[selectedType] || [];
+            categorySelect.innerHTML = '';
+            options.forEach(function(option) {
+                const opt = document.createElement('option');
+                opt.value = option;
+                opt.textContent = option.charAt(0).toUpperCase() + option.slice(1);
+                categorySelect.appendChild(opt);
+            });
+        }
+
+        typeSelect.addEventListener('change', updateCategories);
+        updateCategories(); // Initial call to set the categories based on the default type
+    });
+</script>
 <div class="row justify-content-center">
     <div class="col-lg-6 col-lg-4">
         <div class="card">
@@ -14,13 +40,13 @@
         {{ form.amount.label }} {{ form.amount(class="form-control") }}
     </div>
     <div class="form-group mb-3">
-        {{ form.type.label }} {{ form.type(class="form-control") }}
+        {{ form.type.label }} {{ form.type(class="form-control",id="type") }}
+    </div>
+    <div class="form-group mb-3">
+        {{ form.category.label }} {{ form.category(class="form-control",id="category") }}
     </div>
     <div class="form-group mb-3">
         {{ form.date.label }} {{ form.date(class="form-control") }}
-    </div>
-    <div class="form-group mb-3">
-        {{ form.category.label }} {{ form.category(class="form-control") }}
     </div>
     <div class="form-group mb-3">
         {{ form.submit(class="btn btn-primary") }}

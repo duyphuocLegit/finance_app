@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, FloatField, DateField, SelectField, DecimalField
-from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, Optional, NumberRange
+from wtforms import StringField, PasswordField, SubmitField, FloatField, DateField, SelectField
+from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, Optional
 from app.models import User
 
 class RegistrationForm(FlaskForm):
@@ -29,8 +29,8 @@ class TransactionForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
     amount = FloatField('Amount', validators=[DataRequired()])
     type = SelectField('Type', choices=[('Income', 'Income'), ('Expense', 'Expense')], validators=[DataRequired()])
+    category = SelectField('Category', choices=[], validators=[DataRequired()])
     date = DateField('Date', format='%Y-%m-%d', validators=[DataRequired()])
-    category = StringField('Category', validators=[DataRequired()])
     submit = SubmitField('Add Transaction')
 
 class FilterForm(FlaskForm):

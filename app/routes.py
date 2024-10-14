@@ -96,8 +96,8 @@ def add_transaction():
             title=form.title.data,
             amount=form.amount.data,
             type=form.type.data,
-            date=form.date.data,
             category=form.category.data,
+            date=form.date.data,
             user_id=current_user.id
         )
         db.session.add(transaction)
@@ -117,8 +117,8 @@ def edit_transaction(transaction_id):
     transaction.title = data['title']
     transaction.amount = data['amount']
     transaction.type = data['type']
-    transaction.date = datetime.strptime(data['date'], '%Y-%m-%d')
     transaction.category = data['category']
+    transaction.date = datetime.strptime(data['date'], '%Y-%m-%d')
     db.session.commit()
 
     flash('Transaction updated successfully!','success')

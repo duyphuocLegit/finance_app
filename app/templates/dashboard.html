@@ -56,13 +56,13 @@
     <form method="POST" action="{{ url_for('dashboard') }}">
         {{ form.hidden_tag() }}
         <div class="form-group">
+            {{ form.category.label }} {{ form.category(class="form-control") }}
+        </div>
+        <div class="form-group">
             {{ form.start_date.label }} {{ form.start_date(class="form-control") }}
         </div>
         <div class="form-group">
             {{ form.end_date.label }} {{ form.end_date(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.category.label }} {{ form.category(class="form-control") }}
         </div>
         <div class="form-group">
             {{ form.submit(class="btn btn-primary") }}
@@ -78,8 +78,8 @@
             <th><a href="#" id="sort-title" class="sort-link">Title</a></th>
             <th><a href="#" id="sort-amount" class="sort-link">Amount</a></th>
             <th><a href="#" id="sort-type" class="sort-link">Type</a></th>
-            <th><a href="#" id="sort-date" class="sort-link">Date</a></th>
             <th><a href="#" id="sort-category" class="sort-link">Category</a></th>
+            <th><a href="#" id="sort-date" class="sort-link">Date</a></th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -101,13 +101,16 @@
                     <option value="Expense" {% if transaction.type == 'Expense' %}selected{% endif %}>Expense</option>
                 </select>
             </td>
+            
+            <td>
+                <span class="transaction-category">{{ transaction.category }}</span>
+                <select class="form-control transaction-category-input" style="display:none;">
+                    <!-- Options will be dynamically populated by JavaScript -->
+                </select>
+            </td>
             <td>
                 <span class="transaction-date">{{ transaction.date.strftime('%Y-%m-%d') }}</span>
                 <input type="date" class="form-control transaction-date-input" value="{{ transaction.date.strftime('%Y-%m-%d') }}" style="display:none;">
-            </td>
-            <td>
-                <span class="transaction-category">{{ transaction.category }}</span>
-                <input type="text" class="form-control transaction-category-input" value="{{ transaction.category }}" style="display:none;">
             </td>
             <td>
                 <button class="btn btn-sm edit-btn btn-outline-primary" onclick="editTransaction('{{ transaction.id }}')"><i class="fas fa-edit"></i></button>
@@ -136,72 +139,95 @@
 <canvas id="incomeExpenseChart"></canvas>
 
 <script>
-function editTransaction(id) {
-    document.querySelector(`#transaction-${id} .transaction-title`).style.display = 'none';
-    document.querySelector(`#transaction-${id} .transaction-amount`).style.display = 'none';
-    document.querySelector(`#transaction-${id} .transaction-type`).style.display = 'none';
-    document.querySelector(`#transaction-${id} .transaction-date`).style.display = 'none';
-    document.querySelector(`#transaction-${id} .transaction-category`).style.display = 'none';
-    document.querySelector(`#transaction-${id} .edit-btn`).style.display = 'none';
-
-    document.querySelector(`#transaction-${id} .transaction-title-input`).style.display = 'block';
-    document.querySelector(`#transaction-${id} .transaction-amount-input`).style.display = 'block';
-    document.querySelector(`#transaction-${id} .transaction-type-input`).style.display = 'block';
-    document.querySelector(`#transaction-${id} .transaction-date-input`).style.display = 'block';
-    document.querySelector(`#transaction-${id} .transaction-category-input`).style.display = 'block';
-    document.querySelector(`#transaction-${id} .apply-btn`).style.display = 'inline-block';
-    document.querySelector(`#transaction-${id} .cancel-btn`).style.display = 'inline-block';
-}
-
-function applyTransaction(id) {
-    const title = document.querySelector(`#transaction-${id} .transaction-title-input`).value;
-    const amount = document.querySelector(`#transaction-${id} .transaction-amount-input`).value;
-    const type = document.querySelector(`#transaction-${id} .transaction-type-input`).value;
-    const date = document.querySelector(`#transaction-${id} .transaction-date-input`).value;
-    const category = document.querySelector(`#transaction-${id} .transaction-category-input`).value;
-
-    fetch(`/edit_transaction/${id}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({
-            title: title,
-            amount: amount,
-            type: type,
-            date: date,
-            category: category
-        })
-    }).then(response => {
-        if (response.ok) {
-            document.querySelector(`#transaction-${id} .transaction-title`).textContent = title;
-            document.querySelector(`#transaction-${id} .transaction-amount`).textContent = amount;
-            document.querySelector(`#transaction-${id} .transaction-type`).textContent = type;
-            document.querySelector(`#transaction-${id} .transaction-date`).textContent = date;
-            document.querySelector(`#transaction-${id} .transaction-category`).textContent = category;
-
-            cancelTransaction(id);
-            location.reload();
-        } else {
-            alert('Failed to update transaction.');
+    function editTransaction(id) {
+        document.querySelector(`#transaction-${id} .transaction-title`).style.display = 'none';
+        document.querySelector(`#transaction-${id} .transaction-amount`).style.display = 'none';
+        document.querySelector(`#transaction-${id} .transaction-type`).style.display = 'none';
+        document.querySelector(`#transaction-${id} .transaction-category`).style.display = 'none';
+        document.querySelector(`#transaction-${id} .transaction-date`).style.display = 'none';
+        document.querySelector(`#transaction-${id} .edit-btn`).style.display = 'none';
+    
+        document.querySelector(`#transaction-${id} .transaction-title-input`).style.display = 'block';
+        document.querySelector(`#transaction-${id} .transaction-amount-input`).style.display = 'block';
+        document.querySelector(`#transaction-${id} .transaction-type-input`).style.display = 'block';
+        document.querySelector(`#transaction-${id} .transaction-category-input`).style.display = 'block';
+        document.querySelector(`#transaction-${id} .transaction-date-input`).style.display = 'block';
+        document.querySelector(`#transaction-${id} .apply-btn`).style.display = 'inline-block';
+        document.querySelector(`#transaction-${id} .cancel-btn`).style.display = 'inline-block';
+    
+        const typeSelect = document.querySelector(`#transaction-${id} .transaction-type-input`);
+        const categorySelect = document.querySelector(`#transaction-${id} .transaction-category-input`);
+    
+        const categories = {
+            'Income': ['salary', 'investment', 'gift'],
+            'Expense': ['food', 'study', 'work', 'exercise', 'leisure']
+        };
+    
+        function updateCategories() {
+            const selectedType = typeSelect.value;
+            const options = categories[selectedType] || [];
+            categorySelect.innerHTML = '';
+            options.forEach(function(option) {
+                const opt = document.createElement('option');
+                opt.value = option;
+                opt.textContent = option.charAt(0).toUpperCase() + option.slice(1);
+                categorySelect.appendChild(opt);
+            });
         }
-    });
-}
+    
+        typeSelect.addEventListener('change', updateCategories);
+        updateCategories(); // Initial call to set the categories based on the default type
+    }
+    
+    function applyTransaction(id) {
+        const title = document.querySelector(`#transaction-${id} .transaction-title-input`).value;
+        const amount = document.querySelector(`#transaction-${id} .transaction-amount-input`).value;
+        const type = document.querySelector(`#transaction-${id} .transaction-type-input`).value;
+        const category = document.querySelector(`#transaction-${id} .transaction-category-input`).value;
+        const date = document.querySelector(`#transaction-${id} .transaction-date-input`).value;
+    
+        fetch(`/edit_transaction/${id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                title: title,
+                amount: amount,
+                type: type,
+                category: category,
+                date: date
+            })
+        }).then(response => {
+            if (response.ok) {
+                document.querySelector(`#transaction-${id} .transaction-title`).textContent = title;
+                document.querySelector(`#transaction-${id} .transaction-amount`).textContent = amount;
+                document.querySelector(`#transaction-${id} .transaction-type`).textContent = type;
+                document.querySelector(`#transaction-${id} .transaction-category`).textContent = category;
+                document.querySelector(`#transaction-${id} .transaction-date`).textContent = date;
+    
+                cancelTransaction(id);
+                location.reload();
+            } else {
+                alert('Failed to update transaction.');
+            }
+        });
+    }
 
 function cancelTransaction(id) {
     document.querySelector(`#transaction-${id} .transaction-title`).style.display = 'block';
     document.querySelector(`#transaction-${id} .transaction-amount`).style.display = 'block';
     document.querySelector(`#transaction-${id} .transaction-type`).style.display = 'block';
-    document.querySelector(`#transaction-${id} .transaction-date`).style.display = 'block';
     document.querySelector(`#transaction-${id} .transaction-category`).style.display = 'block';
+    document.querySelector(`#transaction-${id} .transaction-date`).style.display = 'block';
     document.querySelector(`#transaction-${id} .edit-btn`).style.display = 'inline-block';
 
     document.querySelector(`#transaction-${id} .transaction-title-input`).style.display = 'none';
     document.querySelector(`#transaction-${id} .transaction-amount-input`).style.display = 'none';
     document.querySelector(`#transaction-${id} .transaction-type-input`).style.display = 'none';
-    document.querySelector(`#transaction-${id} .transaction-date-input`).style.display = 'none';
     document.querySelector(`#transaction-${id} .transaction-category-input`).style.display = 'none';
+    document.querySelector(`#transaction-${id} .transaction-date-input`).style.display = 'none';
     document.querySelector(`#transaction-${id} .apply-btn`).style.display = 'none';
     document.querySelector(`#transaction-${id} .cancel-btn`).style.display = 'none';
 }
@@ -269,19 +295,18 @@ document.getElementById('sort-type').addEventListener('click', function(event) {
     event.preventDefault();
     sortTable('transactions-body', 2,'string');
 });
-
-document.getElementById('sort-date').addEventListener('click', function(event) {
-    event.preventDefault();
-    sortTable('transactions-body', 3,'date');
-});
-
 document.getElementById('sort-category').addEventListener('click', function(event) {
     event.preventDefault();
-    sortTable('transactions-body', 4,'string');
+    sortTable('transactions-body', 3,'string');
+});
+document.getElementById('sort-date').addEventListener('click', function(event) {
+    event.preventDefault();
+    sortTable('transactions-body', 4,'date');
 });
 
+
 // Default sort by date
-sortTable('transactions-body', 3,'date');
+sortTable('transactions-body', 4,'date');
 
 //Chart
 const ctx = document.getElementById('incomeExpenseChart').getContext('2d');
