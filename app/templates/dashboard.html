@@ -106,7 +106,7 @@ a{
     <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
         <div class="row mb-4">
             <div class="col-md-4">
-                <div class="card text-white bg-success mb-3" data-toggle="modal" data-target="#pieChartModal" data-type="income">
+                <div class="card text-white bg-success mb-3">
                     <div class="card-header">Total Incomes</div>
                     <div class="card-body">
                         <h5 class="card-title">{{ total_income }}</h5>
@@ -114,7 +114,7 @@ a{
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card text-white bg-danger mb-3" data-toggle="modal" data-target="#pieChartModal" data-type="expense">
+                <div class="card text-white bg-danger mb-3">
                     <div class="card-header">Total Expenses</div>
                     <div class="card-body">
                         <h5 class="card-title">{{ total_expenses }}</h5>
@@ -130,27 +130,26 @@ a{
                 </div>
             </div>
         </div>
-        
-        <!-- Modal -->
-        <div class="modal fade" id="pieChartModal" tabindex="-1" role="dialog" aria-labelledby="pieChartModalLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="pieChartModalLabel">Pie Chart</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="row">
+                    <div class="col-12 mb-4">
+                        <canvas id="incomePieChart" style="max-width: 100%; height: auto;"></canvas>
                     </div>
-                    <div class="modal-body">
-                        <img id="pieChartImage" src="" alt="Pie Chart" class="img-fluid">
+                    <div class="col-12">
+                        <canvas id="expensePieChart" style="max-width: 100%; height: auto;"></canvas>
                     </div>
                 </div>
             </div>
+            <div class="col-md-8">
+                <h3>Income and Expense Chart</h3>
+<canvas id="incomeExpenseChart"></canvas>
+            </div>
         </div>
         
-        <h3>Income and Expense Chart</h3>
-<canvas id="incomeExpenseChart"></canvas>
+        
     </div>
+<!-- detail section -->
     <div class="tab-pane fade" id="detail" role="tabpanel" aria-labelledby="detail-tab">
         <!-- Filter Icon -->
 <div id="filter-icon" class="mb-3">
@@ -177,7 +176,6 @@ a{
     </form>
 </div>
 
-<h3>Transactions</h3>
 {% if transactions %}
 <table class="table table-striped">
     <thead>
@@ -243,6 +241,7 @@ a{
 <a href="{{ url_for('add_transaction') }}" class="btn btn-primary">Add Transaction</a>
     </div>
 </div>
+
 <script>
     function editTransaction(id) {
         document.querySelector(`#transaction-${id} .transaction-title`).style.display = 'none';
@@ -385,17 +384,14 @@ function sortTable(tbodyId, colIndex, type) {
     // Append sorted rows
     sortedRows.forEach(row => tbody.appendChild(row));
 }
-
 document.getElementById('sort-title').addEventListener('click', function(event) {
     event.preventDefault();
     sortTable('transactions-body', 0,'string');
 });
-
 document.getElementById('sort-amount').addEventListener('click', function(event) {
     event.preventDefault();
     sortTable('transactions-body', 1,'number');
 });
-
 document.getElementById('sort-type').addEventListener('click', function(event) {
     event.preventDefault();
     sortTable('transactions-body', 2,'string');
@@ -408,7 +404,6 @@ document.getElementById('sort-date').addEventListener('click', function(event) {
     event.preventDefault();
     sortTable('transactions-body', 4,'date');
 });
-
 
 // Default sort by date
 sortTable('transactions-body', 4,'date');
@@ -450,13 +445,50 @@ const incomeExpenseChart = new Chart(ctx, {
     }
 });
 
-$('#pieChartModal').on('show.bs.modal', function (event) {
-    var button = $(event.relatedTarget);
-    var type = button.data('type');
-    var modal = $(this);
-    modal.find('.modal-title').text('Pie Chart of ' + type.charAt(0).toUpperCase() + type.slice(1));
-    modal.find('#pieChartImage').attr('src', '/pie_chart/' + type);
+// Render Income Pie Chart
+const incomeCtx = document.getElementById('incomePieChart').getContext('2d');
+const incomeData = {
+    labels: '{{ income_labels | safe }}',
+    datasets: [{
+        data: '{{ income_values | safe }}',
+        backgroundColor: ['#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722'],
+    }]
+};
+new Chart(incomeCtx, {
+    type: 'pie',
+    data: incomeData,
+    options:{
+        responsive:true,
+        maintainAspectRatio: false,
+        plugins:{
+            legend:{
+                position:'bottom'
+            }
+        }
+    }
 });
 
+// Render Expense Pie Chart
+const expenseCtx = document.getElementById('expensePieChart').getContext('2d');
+const expenseData = {
+    labels: '{{ expense_labels | safe }}',
+    datasets: [{
+        data: '{{ expense_values | safe }}',
+        backgroundColor: ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4'],
+    }]
+};
+new Chart(expenseCtx, {
+    type: 'pie',
+    data: expenseData,
+    options:{
+        responsive:true,
+        maintainAspectRatio: false,
+        plugins:{
+            legend:{
+                position:'bottom'
+            }
+        }
+    }
+});
 </script>
 {% endblock %}

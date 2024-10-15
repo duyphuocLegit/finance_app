@@ -69,19 +69,19 @@ def dashboard():
     total_expenses = sum(t.amount for t in transactions if t.type == 'Expense')
     balance = total_income - total_expenses
 
-    # Prepare data for the chart
-    income_data = defaultdict(float)
-    expense_data = defaultdict(float)
+    # Prepare data for the bar chart
+    income_data_barchart = defaultdict(float)
+    expense_data_barchart = defaultdict(float)
     for t in transactions:
         date_str = t.date.strftime('%Y-%m-%d')
         if t.type == 'Income':
-            income_data[date_str] += t.amount
+            income_data_barchart[date_str] += t.amount
         elif t.type == 'Expense':
-            expense_data[date_str] += t.amount
+            expense_data_barchart[date_str] += t.amount
 
-    labels = sorted(set(income_data.keys()).union(expense_data.keys()))
-    income_values = [income_data[label] for label in labels]
-    expense_values = [expense_data[label] for label in labels]
+    labels = sorted(set(income_data_barchart.keys()).union(expense_data_barchart.keys()))
+    income_values = [income_data_barchart[label] for label in labels]
+    expense_values = [expense_data_barchart[label] for label in labels]
 
     pagination = Pagination(page=page, total=total, per_page=per_page, css_framework='bootstrap4')
 
@@ -136,48 +136,3 @@ def delete_transaction(transaction_id):
     db.session.commit()
     flash('Transaction deleted successfully!', 'success')
     return redirect(url_for('dashboard'))
-
-@app.route('/pie_chart/<string:type>', methods=['GET'])
-@login_required
-def pie_chart(type):
-    try:
-        # Fetch data from the database
-        datas = Transaction.query.filter_by(type=type).all()
-        
-        if not datas:
-            return jsonify({"error": "No data found for the specified type"}), 404
-        
-        # Process data
-        categories = {}
-        for data in datas:
-            category = data.category
-            if category in categories:
-                categories[category] += data.amount
-            else:
-                categories[category] = data.amount
-        
-        if not categories:
-            return jsonify({"error": "No categories found"}), 404
-        
-        labels = categories.keys()
-        values = categories.values()
-        
-        # Generate pie chart
-        plt.figure()
-        plt.pie(values, labels=labels, autopct='%1.1f%%')
-        plt.axis('equal')
-        plt.legend(labels)
-        plt.title('Pie Chart of ' + type)
-        
-        # Save chart to a BytesIO object
-        img = io.BytesIO()
-        plt.savefig(img, format='png')
-        img.seek(0)
-        plt.close()
-        
-        return send_file(img, mimetype='image/png')
-    
-    except Exception as e:
-        # Log the error for debugging
-        print(f"Error generating pie chart: {e}")
-        return jsonify({"error": "An error occurred while generating the pie chart"}), 500
